@@ -1,11 +1,49 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Shield, UserPlus, CheckCircle2, Lock, Globe, Zap } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { connectWallet } from "@/utils/wallet";
+import { toast } from "sonner";
 
 const Home = () => {
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    checkIfWalletIsConnected();
+  }, []);
+
+  const checkIfWalletIsConnected = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        }
+      } catch (error) {
+        console.error("Error checking wallet connection:", error);
+      }
+    }
+  };
+
+  const handleCreateUID = async () => {
+    if (!walletAddress) {
+      try {
+        const address = await connectWallet();
+        setWalletAddress(address);
+        toast.success("Wallet connected successfully!");
+        setTimeout(() => navigate("/register"), 500);
+      } catch (error: any) {
+        toast.error(error.message || "Please connect your MetaMask wallet first");
+      }
+    } else {
+      navigate("/register");
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -29,12 +67,14 @@ const Home = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
-              <Button size="lg" className="gap-2 bg-primary hover:bg-primary/90 text-lg px-8 glow-effect">
-                <UserPlus className="w-5 h-5" />
-                Create UID
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              onClick={handleCreateUID}
+              className="gap-2 bg-primary hover:bg-primary/90 text-lg px-8 glow-effect"
+            >
+              <UserPlus className="w-5 h-5" />
+              {walletAddress ? "Create UID" : "Connect & Create UID"}
+            </Button>
             <Link to="/verify">
               <Button size="lg" variant="outline" className="gap-2 text-lg px-8">
                 <CheckCircle2 className="w-5 h-5" />

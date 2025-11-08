@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Upload, CheckCircle, Copy } from "lucide-react";
+import { Shield, Upload, CheckCircle, Copy, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Loader from "@/components/Loader";
 import { registerUser } from "@/utils/api";
+import { connectWallet } from "@/utils/wallet";
 import { toast } from "sonner";
 
 const Register = () => {
+  const navigate = useNavigate();
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,21 +30,45 @@ const Register = () => {
     ipfsCid: "",
   });
 
+  useEffect(() => {
+    checkWalletConnection();
+  }, []);
+
+  const checkWalletConnection = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        } else {
+          toast.error("Please connect your MetaMask wallet first");
+          setTimeout(() => navigate("/"), 2000);
+        }
+      } catch (error) {
+        console.error("Error checking wallet:", error);
+      }
+    } else {
+      toast.error("MetaMask is not installed. Please install MetaMask to continue.");
+      setTimeout(() => navigate("/"), 2000);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!window.ethereum) {
-      toast.error("Please connect your wallet first!");
+    if (!walletAddress) {
+      toast.error("Wallet not connected. Redirecting...");
+      setTimeout(() => navigate("/"), 1500);
       return;
     }
 
     setLoading(true);
 
     try {
-      // Simulate API call (replace with actual backend call)
+      // Simulate API call with wallet address
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Mock response - replace with actual API call
+      // Mock response - in production, send formData + walletAddress to backend
       const mockUid = "0x" + Math.random().toString(16).substring(2, 42);
       const mockCid = "Qm" + Math.random().toString(36).substring(2, 48);
       
@@ -50,7 +78,7 @@ const Register = () => {
       });
       
       setRegistered(true);
-      toast.success("Registration successful!");
+      toast.success("✅ Registration successful! Your UID has been created.");
     } catch (error: any) {
       toast.error(error.message || "Registration failed");
     } finally {
@@ -135,6 +163,14 @@ const Register = () => {
             <p className="text-muted-foreground">
               Register once and use your Universal ID across all Web3 platforms
             </p>
+            {walletAddress && (
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-primary/20">
+                <Wallet className="w-4 h-4 text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  Connected: {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
+                </span>
+              </div>
+            )}
           </div>
 
           <Card className="glass-card p-8 border-border/50">
