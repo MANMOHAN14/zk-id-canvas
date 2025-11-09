@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { connectWallet } from "@/utils/wallet";
 import { toast } from "sonner";
+import Spline from '@splinetool/react-spline';
 
 const Home = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -45,10 +46,17 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 pt-32 pb-20">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Spline 3D Background */}
+      <div className="fixed inset-0 z-0 opacity-30">
+        <Spline scene="https://prod.spline.design/9b311eea-693d-4876-b7ad-4e6371a7874f/scene.splinecode" />
+      </div>
+
+      {/* Content Layer */}
+      <div className="relative z-10">
+        <Navbar />
+        
+        <main className="container mx-auto px-4 pt-32 pb-20">
         {/* Hero Section */}
         <div className="text-center max-w-4xl mx-auto mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-primary/20 mb-6">
@@ -159,9 +167,10 @@ const Home = () => {
             </Card>
           </div>
         </div>
-      </main>
+        </main>
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 };
