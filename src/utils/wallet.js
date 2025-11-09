@@ -30,3 +30,8 @@ export const getBalance = async (address) => {
   }
   return "0";
 };
+
+export const disconnectWallet = () => {
+  // Clear wallet state (MetaMask doesn't have a disconnect method, but we can clear our local state)
+  return null;
+};

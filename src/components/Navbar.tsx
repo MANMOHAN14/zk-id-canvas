@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Wallet, Shield } from "lucide-react";
-import { connectWallet, shortenAddress } from "@/utils/wallet";
+import { Wallet, Shield, LogOut, CheckCircle } from "lucide-react";
+import { connectWallet, shortenAddress, disconnectWallet } from "@/utils/wallet";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -34,6 +40,12 @@ const Navbar = () => {
     } catch (error: any) {
       toast.error(error.message || "Failed to connect wallet");
     }
+  };
+
+  const handleDisconnect = () => {
+    disconnectWallet();
+    setWalletAddress(null);
+    toast.success("Wallet disconnected successfully!");
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -83,10 +95,23 @@ const Navbar = () => {
           </div>
 
           {walletAddress ? (
-            <Button variant="outline" className="gap-2">
-              <Wallet className="w-4 h-4" />
-              {shortenAddress(walletAddress)}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 bg-primary/10 border-primary/30 hover:bg-primary/20">
+                  <CheckCircle className="w-4 h-4 text-primary" />
+                  <span className="font-medium">{shortenAddress(walletAddress)}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={handleDisconnect} 
+                  className="gap-2 text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Disconnect Wallet
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button onClick={handleConnect} className="gap-2 bg-primary hover:bg-primary/90">
               <Wallet className="w-4 h-4" />
